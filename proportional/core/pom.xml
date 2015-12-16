@@ -7,10 +7,18 @@
     <parent>
         <artifactId>proportional</artifactId>
         <groupId>systemarchitecutres.epuck.proportional</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>proportional.core</artifactId>
     <name>Core (Proportional)</name>
     <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>systemarchitecutres.epuck</groupId>
+            <artifactId>shared</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

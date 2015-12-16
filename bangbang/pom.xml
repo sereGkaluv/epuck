@@ -7,13 +7,13 @@
     <parent>
         <artifactId>epuck</artifactId>
         <groupId>systemarchitecutres.epuck</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>systemarchitecutres.epuck.bangbang</groupId>
     <artifactId>bangbang</artifactId>
     <name>BangBang</name>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>

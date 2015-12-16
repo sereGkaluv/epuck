@@ -16,17 +16,17 @@ public interface Movable extends Runnable {
 	void turnRight();
 
 	/**
-	 * Movable moves itself forward.
+	 * Movable moves forward.
 	 */
 	void moveForward();
 	
 	/**
-	 * Movable moves itself backward.
+	 * Movable moves backward.
 	 */
 	void moveBackward();
 	
 	/**
-	 * Movable stops itself.
+	 * Movable stops.
 	 */
 	void standby();
 }
