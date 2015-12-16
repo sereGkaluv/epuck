@@ -1,5 +1,8 @@
 package api;
 
+/**
+ * Created by sereGkaluv on 12-Dec-15.
+ */
 public interface Movable extends Runnable {
 	
 	/**

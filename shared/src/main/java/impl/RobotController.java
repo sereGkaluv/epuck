@@ -11,8 +11,10 @@ import util.DistanceSensorRegistry;
 import util.LightSensorRegistry;
 import util.MovementSpeed;
 
+/**
+ * Created by sereGkaluv on 12-Dec-15.
+ */
 public abstract class RobotController extends DifferentialWheels implements Movable {
-
 	private static final int MAX_FORWARD_MOTOR_SPEED = 1000;
     private static final int MAX_BACKWARD_MOTOR_SPEED = -1000;
     private static final int STANDBY_MOTOR_SPEED = 0;

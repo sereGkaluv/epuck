@@ -1,6 +1,11 @@
 package util;
 
-
+/**
+ * Created by sereGkaluv on 12-Dec-15.
+ *
+ * Entity object that stores speed values for left and right wheels.
+ * This Entity is implemented with usage of Builder pattern.
+ */
 public class MovementSpeed {
 	
 	private double _speedLeft;
