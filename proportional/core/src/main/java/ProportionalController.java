@@ -30,10 +30,10 @@ public abstract class ProportionalController<T extends Enum<? extends Classifiab
 
     @Override
     protected abstract T[] getRegisteredSensors();
-	
-	@Override
-	protected Map<WheelRegistry, Wheel<T>> calculateMovementSpeed()
-	throws IllegalArgumentException {
+
+    @Override
+    protected Map<WheelRegistry, Wheel<T>> calculateMovementSpeed()
+    throws IllegalArgumentException {
 
         T[] sensors = getRegisteredSensors();
 
