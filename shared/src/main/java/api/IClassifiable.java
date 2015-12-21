@@ -3,7 +3,7 @@ package api;
 /**
  * Created by sereGkaluv on 16-Dec-15.
  */
-public interface Classifiable {
+public interface IClassifiable {
 
     /**
      * Returns a constant value which may be used as a
@@ -11,5 +11,5 @@ public interface Classifiable {
      *
      * @return constant value.
      */
-    String getConstant();
+    String getNamingConstant();
 }

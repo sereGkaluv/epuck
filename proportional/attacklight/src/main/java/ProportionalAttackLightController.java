@@ -1,3 +1,4 @@
+
 import entity.Wheel;
 import util.LightSensorRegistry;
 import util.WheelRegistry;
@@ -8,23 +9,21 @@ import java.util.Map;
 /**
  * Created by sereGkaluv on 16-Dec-15.
  */
-public class ProportionalAttackLightController extends ProportionalController<LightSensorRegistry> {
+public class ProportionalAttackLightController extends ProportionalController {
     private static final int LIGHT_SENSOR_FREQUENCY = 10;
     private static final int DISTANCE_SENSOR_FREQUENCY = 10;
-    private static final double CONSTANT = 0;
 
     private ProportionalAttackLightController(
         int lightSensorFrequency,
         int distanceSensorFrequency,
-        double constant,
-        Map<WheelRegistry, Wheel<LightSensorRegistry>> wheels
+        Map<WheelRegistry, Wheel> wheels
     ) {
-        super(lightSensorFrequency, distanceSensorFrequency, constant, wheels);
+        super(lightSensorFrequency, distanceSensorFrequency, wheels);
     }
 
     @Override
-    protected double getSensorValue(LightSensorRegistry sensorId) {
-        return getLightSensorPercentValue(sensorId);
+    protected double modifySensorPercentValue(double sensorPercentValue) {
+        return getRemainingPercentage(sensorPercentValue);
     }
 
     @Override
@@ -34,26 +33,31 @@ public class ProportionalAttackLightController extends ProportionalController<Li
 
     public static void main(String[] args) {
 
-        Map<LightSensorRegistry, Double> rightVelocityMap = new HashMap<>();
-        rightVelocityMap.put(LightSensorRegistry.BINOCULAR_RIGHT, 1.0);
-        rightVelocityMap.put(LightSensorRegistry.PERIPHERAL_RIGHT, 1.0);
-        rightVelocityMap.put(LightSensorRegistry.RIGHT, 1.0);
-        rightVelocityMap.put(LightSensorRegistry.BACK_RIGHT, 1.0);
+        Map<LightSensorRegistry, Double> leftControllerMap = new HashMap<>();
+        leftControllerMap.put(LightSensorRegistry.LEFT, -1.0);
+        leftControllerMap.put(LightSensorRegistry.PERIPHERAL_LEFT, -1.0);
+        leftControllerMap.put(LightSensorRegistry.BACK_LEFT, -0.01);
+        leftControllerMap.put(LightSensorRegistry.BINOCULAR_RIGHT, 1.0);
+        leftControllerMap.put(LightSensorRegistry.RIGHT, 1.0);
+        leftControllerMap.put(LightSensorRegistry.PERIPHERAL_RIGHT, 1.0);
+        leftControllerMap.put(LightSensorRegistry.BACK_RIGHT, 0.01);
 
-        Map<LightSensorRegistry, Double> leftVelocityMap = new HashMap<>();
-        leftVelocityMap.put(LightSensorRegistry.BACK_LEFT, 1.0);
-        leftVelocityMap.put(LightSensorRegistry.LEFT, 1.0);
-        leftVelocityMap.put(LightSensorRegistry.PERIPHERAL_LEFT, 1.0);
-        leftVelocityMap.put(LightSensorRegistry.BINOCULAR_LEFT, 1.0);
+        Map<LightSensorRegistry, Double> rightControllerMap = new HashMap<>();
+        rightControllerMap.put(LightSensorRegistry.LEFT, 1.0);
+        rightControllerMap.put(LightSensorRegistry.PERIPHERAL_LEFT, 1.0);
+        rightControllerMap.put(LightSensorRegistry.BACK_LEFT, 0.01);
+        rightControllerMap.put(LightSensorRegistry.BINOCULAR_LEFT, 1.0);
+        rightControllerMap.put(LightSensorRegistry.RIGHT, -1.0);
+        rightControllerMap.put(LightSensorRegistry.PERIPHERAL_RIGHT, -1.0);
+        rightControllerMap.put(LightSensorRegistry.BACK_RIGHT, -0.01);
 
-        Map<WheelRegistry, Wheel<LightSensorRegistry>> wheels = new HashMap<>();
-        wheels.put(WheelRegistry.RIGHT, new Wheel<>(rightVelocityMap));
-        wheels.put(WheelRegistry.LEFT, new Wheel<>(leftVelocityMap));
+        Map<WheelRegistry, Wheel> wheels = new HashMap<>();
+        wheels.put(WheelRegistry.LEFT, new Wheel(leftControllerMap));
+        wheels.put(WheelRegistry.RIGHT, new Wheel(rightControllerMap));
 
         new ProportionalAttackLightController(
             LIGHT_SENSOR_FREQUENCY,
             DISTANCE_SENSOR_FREQUENCY,
-            CONSTANT,
             wheels
         ).run();
     }

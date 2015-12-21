@@ -3,7 +3,7 @@ package api;
 /**
  * Created by sereGkaluv on 12-Dec-15.
  */
-public interface Movable extends Runnable {
+public interface IMovable {
 	
 	/**
 	 * Movable turns itself to the left side.
@@ -24,6 +24,11 @@ public interface Movable extends Runnable {
 	 * Movable moves backward.
 	 */
 	void moveBackward();
+
+	/**
+	 * Movable rotates itself on the place.
+	 */
+	void rotate();
 	
 	/**
 	 * Movable stops.

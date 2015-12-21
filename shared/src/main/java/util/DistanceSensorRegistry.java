@@ -1,11 +1,11 @@
 package util;
 
-import api.Classifiable;
+import api.IClassifiable;
 
 /**
  * Created by sereGkaluv on 12-Dec-15.
  */
-public enum DistanceSensorRegistry implements Classifiable {
+public enum DistanceSensorRegistry implements IClassifiable {
     BINOCULAR_RIGHT("ps0"),
     PERIPHERAL_RIGHT("ps1"),
     RIGHT("ps2"),
@@ -22,7 +22,7 @@ public enum DistanceSensorRegistry implements Classifiable {
     }
 
     @Override
-    public String getConstant() {
+    public String getNamingConstant() {
         return _internalConstant;
     }
 }

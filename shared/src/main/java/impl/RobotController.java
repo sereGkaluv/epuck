@@ -1,14 +1,11 @@
 package impl;
 
-import api.Classifiable;
-import api.Movable;
+import api.IClassifiable;
 import com.cyberbotics.webots.controller.DifferentialWheels;
 import com.cyberbotics.webots.controller.DistanceSensor;
 import com.cyberbotics.webots.controller.LightSensor;
-import entity.Wheel;
 import util.DistanceSensorRegistry;
 import util.LightSensorRegistry;
-import util.WheelRegistry;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,12 +14,14 @@ import java.util.Map;
 /**
  * Created by sereGkaluv on 12-Dec-15.
  */
-public abstract class RobotController<T extends Enum<? extends Classifiable>> extends DifferentialWheels implements Movable {
-    private static final int MAX_FORWARD_MOTOR_SPEED = 1000;
-    private static final int STANDBY_MOTOR_SPEED = 0;
-    private static final int MAX_BACKWARD_MOTOR_SPEED = -1000;
-    private static final int MAX_LIGHT_VALUE = 4095;
-    private static final int MAX_DISTANCE_VALUE = 4000;
+public abstract class RobotController extends DifferentialWheels implements Runnable {
+    public static final int MAX_LIGHT_VALUE = 4095;
+    public static final int MAX_DISTANCE_VALUE = 3500;
+
+    public static final int STANDBY_MOTOR_SPEED = 0;
+    public static final int MAX_ABSOLUTE_MOTOR_SPEED = 1000;
+    public static final int MAX_FORWARD_MOTOR_SPEED = MAX_ABSOLUTE_MOTOR_SPEED;
+    public static final int MAX_BACKWARD_MOTOR_SPEED = -MAX_ABSOLUTE_MOTOR_SPEED;
 
     private final int _lightSensorFrequency;
     private final Map<LightSensorRegistry, LightSensor> _lightSensors;
@@ -38,7 +37,7 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
         _lightSensorFrequency = lightSensorFrequency;
 
         for (LightSensorRegistry sensorId : LightSensorRegistry.values()) {
-            LightSensor sensor = new LightSensor(sensorId.getConstant());
+            LightSensor sensor = new LightSensor(sensorId.getNamingConstant());
             sensor.enable(_lightSensorFrequency);
 
             _lightSensors.put(sensorId, sensor);
@@ -49,63 +48,12 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
         _distanceSensorFrequency = distanceSensorFrequency;
 
         for (DistanceSensorRegistry sensorId : DistanceSensorRegistry.values()) {
-            DistanceSensor sensor = new DistanceSensor(sensorId.getConstant());
+            DistanceSensor sensor = new DistanceSensor(sensorId.getNamingConstant());
             sensor.enable(_distanceSensorFrequency);
 
             _distanceSensors.put(sensorId, sensor);
         }
     }
-
-	@Override
-	public void turnLeft() {
-		setSpeed(MAX_BACKWARD_MOTOR_SPEED, MAX_FORWARD_MOTOR_SPEED);
-	}
-	
-	@Override
-	public void turnRight() {
-		setSpeed(MAX_FORWARD_MOTOR_SPEED, MAX_BACKWARD_MOTOR_SPEED);
-	}
-
-	@Override
-	public void moveForward() {
-		setSpeed(MAX_FORWARD_MOTOR_SPEED, MAX_FORWARD_MOTOR_SPEED);
-	}
-	
-	@Override
-	public void moveBackward() {
-		setSpeed(MAX_BACKWARD_MOTOR_SPEED, MAX_BACKWARD_MOTOR_SPEED);
-	}
-	
-	@Override
-	public void standby() {
-		setSpeed(STANDBY_MOTOR_SPEED, STANDBY_MOTOR_SPEED);
-	}
-	
-	@Override
-	public void run() {
-        while (step(_distanceSensorFrequency) != -1) {
-            Map<WheelRegistry, Wheel<T>> wheelMap = calculateMovementSpeed();
-
-            double relativeLeftSpeed = wheelMap.get(WheelRegistry.LEFT).getRelativeSpeed();
-            double relativeRightSpeed = wheelMap.get(WheelRegistry.RIGHT).getRelativeSpeed();
-
-            setSpeed(
-                convertRelativeToRealSpeed(relativeLeftSpeed),
-                convertRelativeToRealSpeed(relativeRightSpeed)
-            );
-        }
-        
-        standby();
-	}
-	
-	/**
-	 * Calculates movement speed for each given wheel at the moment of method call.
-	 * 
-	 * @return instance of WheelContainer object.
-	 * @throws IllegalArgumentException; 
-	 */
-	protected abstract Map<WheelRegistry, Wheel<T>> calculateMovementSpeed()
-	throws IllegalArgumentException;
 	
 	/**
 	 * Converts given relative speed to real speed.
@@ -113,30 +61,44 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
 	 * @return real speed value.
 	 */
 	protected double convertRelativeToRealSpeed(double relativeSpeed) {
-		if (relativeSpeed > 0) {
-			return Math.min(MAX_FORWARD_MOTOR_SPEED, relativeSpeed * MAX_FORWARD_MOTOR_SPEED);
-		} else if (relativeSpeed < 0) {
-			return Math.max(MAX_BACKWARD_MOTOR_SPEED, relativeSpeed * MAX_BACKWARD_MOTOR_SPEED);
-		}
-		return STANDBY_MOTOR_SPEED;
+		return relativeSpeed * MAX_ABSOLUTE_MOTOR_SPEED;
 	}
 
+    /**
+     * Returns value in percent form of the given sensor if registered.
+     *
+     * @param sensorId given sensor to be checked.
+     * @return percent value of the given sensor.
+     * @throws IllegalArgumentException if sensor is not registered.
+     */
+    public double getSensorPercentValueFor(IClassifiable sensorId)
+    throws IllegalArgumentException {
+        if (sensorId != null) {
+            if (sensorId instanceof LightSensorRegistry) {
+                return getLightSensorPercentValueFor((LightSensorRegistry) sensorId);
+            }
 
-    protected abstract T[] getRegisteredSensors();
+            if (sensorId instanceof DistanceSensorRegistry) {
+                return getDistanceSensorPercentValueFor((DistanceSensorRegistry) sensorId);
+            }
+        }
+        throw new IllegalArgumentException("Unknown sensor lookup detected - " + sensorId);
+    }
 
 	/**
 	 * Returns value of the given light sensor if registered.
-	 * 
+	 *
 	 * @param lightSensorId given light sensor to be checked.
 	 * @return value of the given light sensor.
 	 * @throws IllegalArgumentException if sensor is not registered.
 	 */
-	protected double getLightSensorValue(LightSensorRegistry lightSensorId)
+    public double getLightSensorValueFor(LightSensorRegistry lightSensorId)
 	throws IllegalArgumentException {
 		if (lightSensorId != null) {
-			LightSensor lSensor = _lightSensors.get(lightSensorId);
-			
-			if (lSensor != null) return lSensor.getValue();
+			LightSensor lightSensor = _lightSensors.get(lightSensorId);
+
+            //If sensor is registered return real value (value >= 0);
+			if (lightSensor != null) return Math.max(0, lightSensor.getValue());
 		}
 		throw new IllegalArgumentException("Unknown sensor lookup detected - " + lightSensorId);
 	}
@@ -148,9 +110,9 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
 	 * @return value of the given light sensor in percentage form.
 	 * @throws IllegalArgumentException if sensor is not registered.
 	 */
-	protected double getLightSensorPercentValue(LightSensorRegistry lightSensorId)
+    public double getLightSensorPercentValueFor(LightSensorRegistry lightSensorId)
 	throws IllegalArgumentException {
-		return getLightSensorValue(lightSensorId) / MAX_LIGHT_VALUE;
+		return translateToLightPercent(getLightSensorValueFor(lightSensorId));
 	}
 
     /**
@@ -158,7 +120,7 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
      *
      * @return Collection<LightSensor> all light sensors.
      */
-    protected Collection<LightSensor> getAllLightSensors() {
+    public Collection<LightSensor> getAllLightSensors() {
         return _lightSensors.values();
     }
 
@@ -169,12 +131,13 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
 	 * @return value of the given distance sensor.
 	 * @throws IllegalArgumentException if sensor is not registered.
 	 */
-	protected double getDistanceSensorValue(DistanceSensorRegistry distanceSensorId)
+    public double getDistanceSensorValueFor(DistanceSensorRegistry distanceSensorId)
 	throws IllegalArgumentException {
         if (distanceSensorId != null) {
-            DistanceSensor dSensor = _distanceSensors.get(distanceSensorId);
+            DistanceSensor distanceSensor = _distanceSensors.get(distanceSensorId);
 
-            if (dSensor != null) return dSensor.getValue();
+            //If sensor is registered return real value (value >= 0);
+            if (distanceSensor != null) return Math.max(0, distanceSensor.getValue());
         }
         throw new IllegalArgumentException("Unknown sensor lookup detected - " + distanceSensorId);
 	}
@@ -186,17 +149,17 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
      * @return value of the given distance sensor in percentage form.
      * @throws IllegalArgumentException if sensor is not registered.
      */
-    protected double getDistanceSensorPercentValue(DistanceSensorRegistry distanceSensorId)
+    public double getDistanceSensorPercentValueFor(DistanceSensorRegistry distanceSensorId)
     throws IllegalArgumentException {
-        return getDistanceSensorValue(distanceSensorId) / MAX_DISTANCE_VALUE;
+        return translateToDistancePercent(getDistanceSensorValueFor(distanceSensorId));
     }
 
 	/**
 	 * Returns all distance sensors.
-	 * 
+	 *
 	 * @return all distance sensors.
 	 */
-	protected Collection<DistanceSensor> getAllDistanceSensors() {
+    public Collection<DistanceSensor> getAllDistanceSensors() {
         return _distanceSensors.values();
     }
 	
@@ -206,7 +169,7 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
 	 * @param actualPercentage given percentage
 	 * @return remaining percentage
 	 */
-	protected double getRemainingPercentage(double actualPercentage) {
+    public static double getRemainingPercentage(double actualPercentage) {
 		if (actualPercentage > 0) {
 			return 1 - actualPercentage;
 		} else if (actualPercentage < 0) {
@@ -214,4 +177,24 @@ public abstract class RobotController<T extends Enum<? extends Classifiable>> ex
 		}
 		return 0;
 	}
+
+    /**
+     * Translates common light to percent value.
+     *
+     * @param value to be translated to percent.
+     * @return translated (percent) value.
+     */
+    public static double translateToLightPercent(double value) {
+        return value / MAX_LIGHT_VALUE;
+    }
+
+    /**
+     * Translates common distance to percent value.
+     *
+     * @param value to be translated to percent.
+     * @return translated (percent) value.
+     */
+    public static double translateToDistancePercent(double value) {
+        return value / MAX_DISTANCE_VALUE;
+    }
 }

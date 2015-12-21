@@ -13,4 +13,12 @@
     <artifactId>bangbang.core</artifactId>
     <name>Core (BangBang)</name>
     <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>systemarchitecutres.epuck</groupId>
+            <artifactId>shared</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
